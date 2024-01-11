@@ -9,5 +9,5 @@ The maze generator algorithm uses a depth-first search approach to create a maze
 
 ## Customization
 
-You can customize the maze generation process by modifying the parameters in the `maze_generator.py` script. For example, you can adjust the size of the maze, the starting point, or the algorithm used for generating the maze.
+You can customize the maze generation process by modifying the parameters in the [`maze_generator.py`](https://github.com/TheAypisamFpv/maze_generator/blob/main/maze_generator.py) script. For example, you can adjust the size of the maze, the starting point, or the algorithm used for generating the maze.
 
