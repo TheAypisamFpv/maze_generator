@@ -1,7 +1,4 @@
 import random
-import time
-from matplotlib.style import available
-from networkx import neighbors
 import pygame
 
 
@@ -201,6 +198,18 @@ class Maze_recursive_backtracking:
 
 
 def create_maze(width=WIDTH, height=HEIGHT, visualize=VISUALIZE):
+    """
+    Create a maze using the recursive backtracking algorithm
+    ---------------------------------
+    Return a list of lists representing the maze
+    
+    -width : width of the maze (default: 10)
+
+    -height : height of the maze (default: 5)
+
+    -visualize : whether to visualize the maze generation process (default: False)
+    
+    """
     global maze
     maze = Maze_recursive_backtracking(width, height, visualize)
     maze_list = maze.to_list()
