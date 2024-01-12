@@ -212,3 +212,4 @@ def create_maze(width=WIDTH, height=HEIGHT, visualize=VISUALIZE):
         except:
             pass
 
+    return maze_list
