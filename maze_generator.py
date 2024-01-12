@@ -4,11 +4,12 @@ import pygame
 
 
 """SETTINGS"""
-WIDTH = 40
-HEIGHT = 20
-VISUALIZE = False
-CPS = 2000
-
+WIDTH = 20
+HEIGHT = 10
+VISUALIZE = 1
+CPS = 5
+CELL_SIZE = 20  # Adjust this value to change the size of the cells
+MARGIN = 5  # Adjust this value to change the size of the margin
 
 methodes = ["recursive_backtracking", "kruskal (not working)"]
 
@@ -29,6 +30,10 @@ class Maze_recursive_backtracking:
         self.maze_grid = [[Cell_recursive_backtracking(x, y) for y in range(height)] for x in range(width)]
         self.stack = []
 
+        maze.carve_path(visualize=VISUALIZE)
+        maze.draw_maze()
+
+
 
     def to_list(self):
         maze_list = [[1 for _ in range(self.width * 2 + 1)] for _ in range(self.height * 2 + 1)]
@@ -46,6 +51,7 @@ class Maze_recursive_backtracking:
         maze_list[-2][-1] = 0
         
         return maze_list
+
 
 
     def show_maze(self, maze_list: list):
@@ -71,6 +77,43 @@ class Maze_recursive_backtracking:
                     neighbours.append((direction, neighbour))
 
         return neighbours
+
+
+    def draw_maze(self, current_cell=None, backtracked_cell=None):
+        
+        screen = pygame.display.set_mode((self.width * CELL_SIZE, self.height * CELL_SIZE))
+        screen.fill((255, 255, 255))  # Fill the screen with white
+
+        for x in range(self.width):
+            for y in range(self.height):
+                cell = self.maze_grid[x][y]
+                if cell.walls["top"]:
+                    pygame.draw.line(screen, (0, 0, 0), (x * CELL_SIZE, y * CELL_SIZE), ((x + 1) * CELL_SIZE, y * CELL_SIZE))
+                if cell.walls["right"]:
+                    pygame.draw.line(screen, (0, 0, 0), ((x + 1) * CELL_SIZE, y * CELL_SIZE), ((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE))
+                if cell.walls["bottom"]:
+                    pygame.draw.line(screen, (0, 0, 0), (x * CELL_SIZE, (y + 1) * CELL_SIZE), ((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE))
+                if cell.walls["left"]:
+                    pygame.draw.line(screen, (0, 0, 0), (x * CELL_SIZE, y * CELL_SIZE), (x * CELL_SIZE, (y + 1) * CELL_SIZE))
+
+
+
+        if current_cell:
+            pygame.draw.rect(screen, (255, 0, 0), (current_cell.x * CELL_SIZE + MARGIN, current_cell.y * CELL_SIZE + MARGIN, CELL_SIZE - 2 * MARGIN, CELL_SIZE - 2 * MARGIN))
+
+        if backtracked_cell:
+            pygame.draw.rect(screen, (0, 0, 255), (backtracked_cell.x * CELL_SIZE + MARGIN, backtracked_cell.y * CELL_SIZE + MARGIN, CELL_SIZE - 2 * MARGIN, CELL_SIZE - 2 * MARGIN))
+
+    
+            
+
+        #if the current cell is the one on the top left corner, drow it normally
+        if current_cell and current_cell.x == 0 and current_cell.y == 0:
+            pygame.draw.rect(screen, (255, 255, 255), (current_cell.x * CELL_SIZE + MARGIN, current_cell.y * CELL_SIZE + MARGIN, CELL_SIZE - 2 * MARGIN, CELL_SIZE - 2 * MARGIN))
+
+            
+        pygame.time.wait(int(100/CPS))
+        pygame.display.flip()
     
 
     def carve_path(self, visualize=False):
@@ -86,9 +129,8 @@ class Maze_recursive_backtracking:
                 backtracked_cell = self.stack.pop()
                 backtracked_cell.backtracked = True  # Mark the cell as backtracked
                 if visualize:
-                    draw_maze(self, current_cell, backtracked_cell)
+                    self.draw_maze(current_cell, backtracked_cell)
                     pygame.display.flip()
-                    pygame.time.wait(int(100/CPS))
             else:
                 direction, next_cell = random.choice(neighbours)
                 # print(direction, next_cell.x, next_cell.y)
@@ -113,130 +155,98 @@ class Maze_recursive_backtracking:
                 next_cell.visited = True
                 self.stack.append(next_cell)
                 if visualize:
-                    draw_maze(self, current_cell)
+                    self.draw_maze(current_cell)
                     pygame.display.flip()
-                    pygame.time.wait(int(100/CPS))
 
 
 
-class Cell_kruskal:
-    def __init__(self):
-        self.x = None
-        self.y = None
-        self.walls = {"top": 1, "right": 1, "bottom": 1, "left": 1}
-        self.parent = self
-        self.rank = 0
 
-    def find(self):
-        if self.parent != self:
-            self.parent = self.parent.find()
-        return self.parent
-
-    def union(self, cell):
-        root1 = self.find()
-        root2 = cell.find()
-        if root1 == root2:
-            return
-        if root1.rank > root2.rank:
-            root2.parent = root1
-        elif root2.rank > root1.rank:
-            root1.parent = root2
-        else:
-            root2.parent = root1
-            root1.rank += 1
-            
 class Maze_kruskal:
-    def __init__(self, width:int, height:int):
+    def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.maze_grid = [[Cell_kruskal() for y in range(height)] for x in range(width)]
-        self.walls = []
-        self.create_walls()
-        self.create_maze()
+        self.maze_grid = [[Cell_recursive_backtracking(x, y) for y in range(height)] for x in range(width)]
+        rank = 0
+        for x in range(width):
+            for y in range(height):
+                self.maze_grid[x][y] = rank
+                rank += 1
 
-    def to_list(self):
-        maze_list = [[1 for _ in range(self.width * 2 + 1)] for _ in range(self.height * 2 + 1)]
-        for y in range(self.height):
-            for x in range(self.width):
-                cell = self.maze_grid[x][y]
-                maze_list[y * 2 + 1][x * 2 + 1] = 0
-                if not cell.walls["right"] and x < self.width - 1:
-                    maze_list[y * 2 + 1][x * 2 + 2] = 0
-                if not cell.walls["bottom"] and y < self.height - 1:
-                    maze_list[y * 2 + 2][x * 2 + 1] = 0
+        self.generate_maze()
 
-        #remove the left wall of the first cell, and the right wall of the bottom right cell
-        maze_list[1][0] = 0
-        maze_list[-2][-1] = 0
+
+    def render_maze(self):
+        #render maze in pygame
+        screen = pygame.display.set_mode((self.width * CELL_SIZE, self.height * CELL_SIZE))
         
-        return maze_list
-
-    def show_maze(self, maze_list: list):
-        for row in maze_list:
-            for cell in row:
-                if cell == 1:
-                    print("⬛", end="")
-                else:
-                    print("⬜", end="")
-            print()
-
-    def create_walls(self):
         for x in range(self.width):
             for y in range(self.height):
                 cell = self.maze_grid[x][y]
-                if x < self.width - 1:
-                    self.walls.append((cell, self.maze_grid[x + 1][y]))
-                if y < self.height - 1:
-                    self.walls.append((cell, self.maze_grid[x][y + 1]))
 
+                #render the cell a color depending on the rank
+                color = (cell**2 % 255, cell**3 % 255, cell**4 % 255)
+                pygame.draw.rect(screen, color, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
-    def create_maze(self):
-        random.shuffle(self.walls)
-        for cell1, cell2 in self.walls:
-            if cell1.find() != cell2.find():
-                cell1.union(cell2)
-                if cell1.x == cell2.x:
-                    cell1.walls["bottom"] = 0
-                    cell2.walls["top"] = 0
-                else:
-                    cell1.walls["right"] = 0
-                    cell2.walls["left"] = 0
-
+                directions = {
+                        "top": (0, 1),
+                        "bottom": (0, -1),
+                        "left": (-1, 0),
+                        "right": (1, 0)
+                    }
                     
+                if cell != self.maze_grid[x][y + 1]:
+                    pygame.draw.line(screen, (0, 0, 0), (x * CELL_SIZE, y * CELL_SIZE), ((x + 1) * CELL_SIZE, y * CELL_SIZE))
+                if cell != self.maze_grid[x + 1][y]:
+                    pygame.draw.line(screen, (0, 0, 0), ((x + 1) * CELL_SIZE, y * CELL_SIZE), ((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE))
+                if cell != self.maze_grid[x][y - 1]:
+                    pygame.draw.line(screen, (0, 0, 0), (x * CELL_SIZE, (y + 1) * CELL_SIZE), ((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE))
+                if cell != self.maze_grid[x - 1][y]:
+                    pygame.draw.line(screen, (0, 0, 0), (x * CELL_SIZE, y * CELL_SIZE), (x * CELL_SIZE, (y + 1) * CELL_SIZE))
 
-                    
-
-
-
-def draw_maze(maze, current_cell=None, backtracked_cell=None):
-    cell_size = 20  # Adjust this value to change the size of the cells
-    margin = 5  # Adjust this value to change the size of the margin
-    screen = pygame.display.set_mode((maze.width * cell_size, maze.height * cell_size))
-    screen.fill((255, 255, 255))  # Fill the screen with white
-
-    for x in range(maze.width):
-        for y in range(maze.height):
-            cell = maze.maze_grid[x][y]
-            if cell.walls["top"]:
-                pygame.draw.line(screen, (0, 0, 0), (x * cell_size, y * cell_size), ((x + 1) * cell_size, y * cell_size))
-            if cell.walls["right"]:
-                pygame.draw.line(screen, (0, 0, 0), ((x + 1) * cell_size, y * cell_size), ((x + 1) * cell_size, (y + 1) * cell_size))
-            if cell.walls["bottom"]:
-                pygame.draw.line(screen, (0, 0, 0), (x * cell_size, (y + 1) * cell_size), ((x + 1) * cell_size, (y + 1) * cell_size))
-            if cell.walls["left"]:
-                pygame.draw.line(screen, (0, 0, 0), (x * cell_size, y * cell_size), (x * cell_size, (y + 1) * cell_size))
+                
 
 
-    if current_cell:
-        pygame.draw.rect(screen, (255, 0, 0), (current_cell.x * cell_size + margin, current_cell.y * cell_size + margin, cell_size - 2 * margin, cell_size - 2 * margin))
+    def generate_maze(self):
+        #while there is more than 1 rank, generate maze
 
-    if backtracked_cell:
-        pygame.draw.rect(screen, (0, 0, 255), (backtracked_cell.x * cell_size + margin, backtracked_cell.y * cell_size + margin, cell_size - 2 * margin, cell_size - 2 * margin))
+        while len(set([cell for row in self.maze_grid for cell in row])) > 1:
+
+            #chose 2 random cells (2nd cell is next to the first one)
+            x_1, y_1 = random.randint(0, self.width - 1), random.randint(0, self.height - 1)
+            
+            #random direction
+            directions = []
+            if x_1 > 0:
+                directions.append("left")
+            if x_1 < self.width - 1:
+                directions.append("right")
+            if y_1 > 0:
+                directions.append("top")
+            if y_1 < self.height - 1:
+                directions.append("bottom")
+            
+            direction = random.choice(directions)
+            
+            x_2, y_2 = x_1, y_1
+            if direction == "top":
+                y_2 -= 1
+            elif direction == "right":
+                x_2 += 1
+            elif direction == "bottom":
+                y_2 += 1
+            elif direction == "left":
+                x_2 -= 1
+
+            self.merge_cells((x_1, y_1), (x_2, y_2))
+            self.render_maze()
 
 
-    #if the current cell is the one on the top left corner, drow it normally
-    if current_cell and current_cell.x == 0 and current_cell.y == 0:
-        pygame.draw.rect(screen, (255, 255, 255), (current_cell.x * cell_size + margin, current_cell.y * cell_size + margin, cell_size - 2 * margin, cell_size - 2 * margin))
+    def merge_cells(self, cell1, cell2):
+        #merge cell1 into cell2
+        self.maze_grid[cell1[0]][cell1[1]] = self.maze_grid[cell2[0]][cell2[1]]
+        
+
+
 
 
 
@@ -245,7 +255,6 @@ def draw_maze(maze, current_cell=None, backtracked_cell=None):
 def create_maze(methode:str,width, height):
     if methode == "recursive_backtracking":
         maze = Maze_recursive_backtracking(width, height)
-        maze.carve_path(visualize=VISUALIZE)
     elif methode == "kruskal":
         maze = Maze_kruskal(width, height)
     else:
@@ -263,11 +272,8 @@ while __name__ == "__main__":
     maze = create_maze(input("methode :\n> "), WIDTH, HEIGHT)
     if maze == None:
         continue
-    maze.show_maze(maze.to_list())
     # time.sleep(1)
     if VISUALIZE:
-        pygame.init()
-        draw_maze(maze)
-        pygame.display.flip()
         pygame.time.wait(1000)
         pygame.quit()
+
