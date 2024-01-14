@@ -55,18 +55,7 @@ class Maze_recursive_backtracking:
         
         return maze_list
 
-
-
-    def show_maze(self, maze_list: list):
-        for row in maze_list:
-            for cell in row:
-                if cell == 1:
-                    print("⬛", end="")
-                else:
-                    print("⬜", end="")
-            print()
         
-
 
     def get_neighbours(self, cell: Cell_recursive_backtracking):
         directions = [("top", (0, -1)), ("right", (1, 0)), ("bottom", (0, 1)), ("left", (-1, 0))]
@@ -197,6 +186,19 @@ class Maze_recursive_backtracking:
 
 
 
+
+def show_maze(maze_list: list[list[int]]):
+    """
+    Display the maze in the terminal as a grid of black and white squares
+    """
+    for row in maze_list:
+        for cell in row:
+            print("⬛", end="") if cell else print("⬜", end="")
+        print()
+
+
+
+
 def create_maze(width=WIDTH, height=HEIGHT, visualize=VISUALIZE):
     """
     Create a maze using the recursive backtracking algorithm
@@ -210,11 +212,10 @@ def create_maze(width=WIDTH, height=HEIGHT, visualize=VISUALIZE):
     -visualize : whether to visualize the maze generation process (default: False)
     
     """
-    global maze
     maze = Maze_recursive_backtracking(width, height, visualize)
     maze_list = maze.to_list()
     if visualize:
-        maze.show_maze(maze_list)
+        show_maze(maze_list)
         # freeze for 5s
         try:
             pygame.time.wait(5000)
