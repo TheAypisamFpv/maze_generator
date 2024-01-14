@@ -215,7 +215,6 @@ def create_maze(width=WIDTH, height=HEIGHT, visualize=VISUALIZE):
     maze = Maze_recursive_backtracking(width, height, visualize)
     maze_list = maze.to_list()
     if visualize:
-        show_maze(maze_list)
         # freeze for 5s
         try:
             pygame.time.wait(5000)
