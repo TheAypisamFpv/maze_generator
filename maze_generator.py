@@ -48,7 +48,7 @@ class Maze_recursive_backtracking:
             for x in range(1,self.width * 2 + 1):
                 if x in range(1,6) and y in range(1,6):
                     maze_list[y][x] = 0
-                elif x in range(1,6) and y in range(5, self.height * 2 + 1):
+                elif x in range(1,6) and y in range(5, 7):
                     maze_list[y][x] = 1
 
         #end area
@@ -56,7 +56,7 @@ class Maze_recursive_backtracking:
             for x in range(1,self.width * 2 + 1):
                 if x in range(self.width * 2 - 5, self.width * 2) and y in range(self.height * 2 - 5,self.height * 2):
                     maze_list[y][x] = 0
-                elif x in range(self.width * 2 - 5, self.width * 2) and y in range(1, self.height * 2 - 5):
+                elif x in range(self.width * 2 - 5, self.width * 2) and y in range(self.height * 2 - 6,self.height * 2 - 5):
                     maze_list[y][x] = 1
                
         
@@ -203,13 +203,13 @@ class Maze_recursive_backtracking:
 
 
 
-def show_maze(maze_list: list[list[int]]):
+def show_maze(maze_list: list[list[int]], invert_colors=False):
     """
     Display the maze in the terminal as a grid of black and white squares
     """
     for row in maze_list:
         for cell in row:
-            print("⬛", end="") if cell else print("⬜", end="")
+            print("⬛", end="") if cell != invert_colors else print("⬜", end="")
         print()
 
 
