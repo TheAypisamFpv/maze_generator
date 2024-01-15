@@ -21,13 +21,13 @@ class Cell_recursive_backtracking:
 
 class Maze_recursive_backtracking:          
     def __init__(self, width:int, height:int, visualize:bool):
-        self.width = width
+        self.width = width+5
         self.height = height
-        self.maze_grid = [[Cell_recursive_backtracking(x, y) for y in range(height)] for x in range(width)]
+        self.maze_grid = [[Cell_recursive_backtracking(x, y) for y in range(self.height)] for x in range(self.width)]
         self.stack = []
 
         self.carve_path(visualize)
-        self.draw_maze()
+        if visualize: self.draw_maze()
 
 
 
@@ -42,9 +42,25 @@ class Maze_recursive_backtracking:
                 if not cell.walls["bottom"] and y < self.height - 1:
                     maze_list[y * 2 + 2][x * 2 + 1] = 0
 
-        #remove the left wall of the first cell, and the right wall of the bottom right cell
-        maze_list[1][0] = 0
-        maze_list[-2][-1] = 0
+        #remove cells to make a 3*3 start and end area of the maze
+        #start area
+        for y in range(1,self.height * 2 + 1):
+            for x in range(1,self.width * 2 + 1):
+                if x in range(1,6) and y in range(1,6):
+                    maze_list[y][x] = 0
+                elif x in range(1,6) and y in range(5, self.height * 2 + 1):
+                    maze_list[y][x] = 1
+
+        #end area
+        for y in range(1,self.height * 2 + 1):
+            for x in range(1,self.width * 2 + 1):
+                if x in range(self.width * 2 - 5, self.width * 2) and y in range(self.height * 2 - 5,self.height * 2):
+                    maze_list[y][x] = 0
+                elif x in range(self.width * 2 - 5, self.width * 2) and y in range(1, self.height * 2 - 5):
+                    maze_list[y][x] = 1
+               
+        
+        
 
         if save_to_file:
             with open("maze.txt", "w") as f:
